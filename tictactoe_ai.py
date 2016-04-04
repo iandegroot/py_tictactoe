@@ -26,22 +26,39 @@ class TicTacToe:
     buttons = []
 
     def __init__(self):
-        self.board = []
-        self.moves = [StringVar()] * 9
+        self.board = [" "] * 9
+        # List comprehension is needed so that each StringVar will not point to the same object
+        self.moves = [StringVar() for x in xrange(9)]
         self.xWins = 0
         self.oWins = 0
         self.currPlayer = "X"
         self.moveNumber = 0
 
-        for i in self.moves:
-            i.set(" ")
+        for m in self.moves:
+            m.set(" ")
 
     def makeMove(self, move):
         aiOn.config(state='disabled')
+        if self.currPlayer == "X":
+            self.board[move] = "X"
+            self.updateBoard(move)
+            infoText.set("It is O's turn")
+            self.currPlayer = "O"
+        else:
+            self.board[move] = "O"
+            self.updateBoard(move)
+            infoText.set("It is X's turn")
+            self.currPlayer = "X"
+
+
 
     def reset(self):
         self.currPlayer = "X"
         self.moveNumber = 0
+
+    def updateBoard(self, move):
+        for i in xrange(9):
+            self.moves[i].set(self.board[i])
 
 
 # -------------------------------------
@@ -77,10 +94,8 @@ info = Label(root, textvariable=infoText)
 info.grid(row=2, column=0, columnspan=3)
 
 # Create buttons
-for square in xrange(0, 9):
-    # textList[rowNum].append(StringVar())
-    # textList[rowNum][colNum].set(" ")
-    tempButton = Button(root, textvariable=game.moves[square], command=lambda: game.makeMove(square))
+for square in xrange(9):
+    tempButton = Button(root, textvariable=game.moves[square], command=lambda s=square: game.makeMove(s))
     # Divide by 3 to get row number, modulus by 3 to get column number
     tempButton.grid(row=(square / 3) + 3, column=(square % 3), sticky=NSEW)
     game.buttons.append(tempButton)
