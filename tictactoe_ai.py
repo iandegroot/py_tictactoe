@@ -1,10 +1,9 @@
 #!/usr/bin/python
 
 from Tkinter import *
-from time import sleep
+import copy
 
-
-# The tic-tac-toe grid will have the following numbering convertion
+# The tic-tac-toe grid will have the following numbering convention
 # 0 | 1 | 2
 # ---------
 # 3 | 4 | 5
@@ -28,7 +27,7 @@ class TicTacToe:
     def __init__(self):
         self.board = [" "] * 9
         # List comprehension is needed so that each StringVar will not point to the same object
-        self.moves = [StringVar() for x in xrange(9)]
+        self.moves = [StringVar() for _ in xrange(9)]
         self.xWins = 0
         self.oWins = 0
         self.currPlayer = "X"
@@ -39,26 +38,166 @@ class TicTacToe:
 
     def makeMove(self, move):
         aiOn.config(state='disabled')
+        self.moveNumber += 1
         if self.currPlayer == "X":
             self.board[move] = "X"
-            self.updateBoard(move)
             infoText.set("It is O's turn")
             self.currPlayer = "O"
+            # If the AI is turned on then tell the AI to take its turn
+            if aiOnVar.get() and self.moveNumber < 9:
+                self.aiMMInit()
         else:
             self.board[move] = "O"
-            self.updateBoard(move)
             infoText.set("It is X's turn")
             self.currPlayer = "X"
 
+        self.buttons[move].config(state="disabled")
 
+        # Check for a win
+        if self.gameWon(self.board, "X"):
+            self.whoWon("X")
+        elif self.gameWon(self.board, "O"):
+            self.whoWon("O")
+        # Check for a Cat's game
+        elif self.moveNumber == 9:
+            if self.boardFull(self.board):
+                infoText.set("Cat's game!")
+                for b in self.buttons:
+                    b.config(disabledforeground="red")
 
+        self.updateBoard()
+
+    # Check who won the game, and change the GUI state accordingly
+    def whoWon(self, winningPlayer):
+        if winningPlayer == "X":
+            infoText.set("X wins!!!")
+            self.xWins += 1
+        else:
+            infoText.set("O wins!!!")
+            self.oWins += 1
+
+        countText.set("X: " + str(self.xWins) + "\tO: " + str(self.oWins))
+
+        for b in self.buttons:
+            b.config(state="disabled")
+
+    # Reset the game to its base state
     def reset(self):
+        aiOn.config(state='normal')
         self.currPlayer = "X"
         self.moveNumber = 0
 
-    def updateBoard(self, move):
+        infoText.set("It is X's turn")
+
+        self.board = [" " for _ in self.board]
+        self.updateBoard()
+
+        for b in self.buttons:
+            b.config(state="normal")
+            b.config(disabledforeground="black")
+
+    # Update the GUI to reflect the moves in the board attribute
+    def updateBoard(self):
         for i in xrange(9):
             self.moves[i].set(self.board[i])
+
+    def gameWon(self, gameboard, player):
+        won = False
+
+        # Horizontal
+        won |= self.threeInARow(gameboard, player, TicTacToe.topLeft, TicTacToe.topMid, TicTacToe.topRight)
+        won |= self.threeInARow(gameboard, player, TicTacToe.midLeft, TicTacToe.mid, TicTacToe.midRight)
+        won |= self.threeInARow(gameboard, player, TicTacToe.botLeft, TicTacToe.botMid, TicTacToe.botRight)
+
+        # Vertical
+        won |= self.threeInARow(gameboard, player, TicTacToe.topLeft, TicTacToe.midLeft, TicTacToe.botLeft)
+        won |= self.threeInARow(gameboard, player, TicTacToe.topMid, TicTacToe.mid, TicTacToe.botMid)
+        won |= self.threeInARow(gameboard, player, TicTacToe.topRight, TicTacToe.midRight, TicTacToe.botRight)
+
+        # Diagonal
+        won |= self.threeInARow(gameboard, player, TicTacToe.topLeft, TicTacToe.mid, TicTacToe.botRight)
+        won |= self.threeInARow(gameboard, player, TicTacToe.topRight, TicTacToe.mid, TicTacToe.botLeft)
+
+        return won
+
+    def threeInARow(self, gameboard, player, pos1, pos2, pos3):
+        # TODO - Save winning positions to change the colors on a win
+        if gameboard[pos1] == gameboard[pos2] == gameboard[pos3] and gameboard[pos1] == player:
+            return True
+        else:
+            return False
+
+    # Get the opposite player
+    def getEnemy(self, currPlayer):
+        if currPlayer == "X":
+            return "O"
+        else:
+            return "X"
+
+    # Returns true if the board is full
+    def boardFull(self, board):
+        for s in board:
+            if s == " ":
+                return False
+
+        return True
+
+    def aiMMInit(self):
+        player = 'O'
+        a = -1000
+        b = 1000
+
+        boardCopy = copy.deepcopy(self.board)
+
+        bestOutcome = -100
+
+        bestMove = None
+
+        for i in xrange(9):
+            if boardCopy[i] == " ":
+                boardCopy[i] = player
+                val = self.minimax(self.getEnemy(player), boardCopy, a, b)
+                boardCopy[i] = " "
+                if player == "O":
+                    if val > bestOutcome:
+                        bestOutcome = val
+                        bestMove = i
+                else:
+                    if val < bestOutcome:
+                        bestOutcome = val
+                        bestMove = i
+
+        self.makeMove(bestMove)
+
+    def minimax(self, player, board, alpha, beta):
+        boardCopy = copy.deepcopy(board)
+
+        # Check for a win
+        if self.gameWon(boardCopy, "O"):
+            return 1
+        elif self.gameWon(boardCopy, "X"):
+            return -1
+        elif self.boardFull(boardCopy):
+            return 0
+
+        best = -100 if player == "O" else 100
+
+        for i in xrange(9):
+            if boardCopy[i] == " ":
+                boardCopy[i] = player
+                val = self.minimax(self.getEnemy(player), boardCopy, alpha, beta)
+                boardCopy[i] = " "
+                if player == "O":
+                    best = max(best, val)
+                    alpha = min(alpha, best)
+                else:
+                    best = min(best, val)
+                    beta = max(beta, best)
+
+                if beta <= alpha:
+                    return best
+
+        return best
 
 
 # -------------------------------------
