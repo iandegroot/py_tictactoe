@@ -32,9 +32,10 @@ class TicTacToe:
         self.oWins = 0
         self.currPlayer = "X"
         self.moveNumber = 0
+        self.winningSquares = []
 
-        for m in self.moves:
-            m.set(" ")
+        self.applyToEach(lambda x: x.set(" "), self.moves)
+
 
     def makeMove(self, move):
         aiOn.config(state='disabled')
@@ -46,6 +47,8 @@ class TicTacToe:
             # If the AI is turned on then tell the AI to take its turn
             if aiOnVar.get() and self.moveNumber < 9:
                 self.aiMMInit()
+                if self.gameWon(self.board, "O"):
+                    return
         else:
             self.board[move] = "O"
             infoText.set("It is X's turn")
@@ -59,13 +62,17 @@ class TicTacToe:
         elif self.gameWon(self.board, "O"):
             self.whoWon("O")
         # Check for a Cat's game
-        elif self.moveNumber == 9:
-            if self.boardFull(self.board):
-                infoText.set("Cat's game!")
-                for b in self.buttons:
-                    b.config(disabledforeground="red")
+        elif self.moveNumber == 9 and self.boardFull(self.board):
+            infoText.set("Cat's game!")
+            self.applyToEach(lambda x: x.config(disabledforeground="red"), self.buttons)
 
         self.updateBoard()
+
+    # Apply the given function to each element in the given list
+    # Like map but does not return anything
+    def applyToEach(self, func, someList):
+        for l in someList:
+            func(l)
 
     # Check who won the game, and change the GUI state accordingly
     def whoWon(self, winningPlayer):
@@ -77,6 +84,8 @@ class TicTacToe:
             self.oWins += 1
 
         countText.set("X: " + str(self.xWins) + "\tO: " + str(self.oWins))
+
+        self.applyToEach(lambda x: x.config(disabledforeground="red"), [self.buttons[s] for s in self.winningSquares])
 
         for b in self.buttons:
             b.config(state="disabled")
@@ -121,8 +130,8 @@ class TicTacToe:
         return won
 
     def threeInARow(self, gameboard, player, pos1, pos2, pos3):
-        # TODO - Save winning positions to change the colors on a win
         if gameboard[pos1] == gameboard[pos2] == gameboard[pos3] and gameboard[pos1] == player:
+            self.winningSquares = [pos1, pos2, pos3]
             return True
         else:
             return False
