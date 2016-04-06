@@ -36,7 +36,7 @@ class TicTacToe:
 
         self.applyToEach(lambda x: x.set(" "), self.moves)
 
-
+    # Call this to make a move
     def makeMove(self, move):
         aiOn.config(state='disabled')
         self.moveNumber += 1
@@ -110,6 +110,7 @@ class TicTacToe:
         for i in xrange(9):
             self.moves[i].set(self.board[i])
 
+    # Check each of the winning combinations to check if anyone has won
     def gameWon(self, gameboard, player):
         won = False
 
@@ -129,6 +130,7 @@ class TicTacToe:
 
         return won
 
+    # Check if the three given squares are owned by the same player
     def threeInARow(self, gameboard, player, pos1, pos2, pos3):
         if gameboard[pos1] == gameboard[pos2] == gameboard[pos3] and gameboard[pos1] == player:
             self.winningSquares = [pos1, pos2, pos3]
@@ -151,6 +153,7 @@ class TicTacToe:
 
         return True
 
+    # Call this to start the minimax algorithm
     def aiMMInit(self):
         player = 'O'
         a = -1000
@@ -178,6 +181,7 @@ class TicTacToe:
 
         self.makeMove(bestMove)
 
+    # The minimax algorithm, with alpha-beta pruning
     def minimax(self, player, board, alpha, beta):
         boardCopy = copy.deepcopy(board)
 
