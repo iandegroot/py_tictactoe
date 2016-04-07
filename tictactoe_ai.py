@@ -28,125 +28,126 @@ class TicTacToe:
         self.board = [" "] * 9
         # List comprehension is needed so that each StringVar will not point to the same object
         self.moves = [StringVar() for _ in xrange(9)]
-        self.xWins = 0
-        self.oWins = 0
-        self.currPlayer = "X"
-        self.moveNumber = 0
-        self.winningSquares = []
+        self.x_wins = 0
+        self.o_wins = 0
+        self.curr_player = "X"
+        self.move_number = 0
+        self.winning_squares = []
 
-        self.applyToEach(lambda x: x.set(" "), self.moves)
+        self.apply_to_each(lambda x: x.set(" "), self.moves)
 
     # Call this to make a move
-    def makeMove(self, move):
-        aiOn.config(state='disabled')
-        self.moveNumber += 1
-        if self.currPlayer == "X":
+    def make_move(self, move):
+        ai_on.config(state='disabled')
+        self.move_number += 1
+        if self.curr_player == "X":
             self.board[move] = "X"
-            infoText.set("It is O's turn")
-            self.currPlayer = "O"
+            info_text.set("It is O's turn")
+            self.curr_player = "O"
             # If the AI is turned on then tell the AI to take its turn
-            if aiOnVar.get() and self.moveNumber < 9:
-                self.aiMMInit()
-                if self.gameWon(self.board, "O"):
+            if ai_on_var.get() and self.move_number < 9:
+                self.ai_mm_init()
+                if self.game_won(self.board, "O"):
                     return
         else:
             self.board[move] = "O"
-            infoText.set("It is X's turn")
-            self.currPlayer = "X"
+            info_text.set("It is X's turn")
+            self.curr_player = "X"
 
         self.buttons[move].config(state="disabled")
 
         # Check for a win
-        if self.gameWon(self.board, "X"):
-            self.whoWon("X")
-        elif self.gameWon(self.board, "O"):
-            self.whoWon("O")
+        if self.game_won(self.board, "X"):
+            self.who_won("X")
+        elif self.game_won(self.board, "O"):
+            self.who_won("O")
         # Check for a Cat's game
-        elif self.moveNumber == 9 and self.boardFull(self.board):
-            infoText.set("Cat's game!")
-            self.applyToEach(lambda x: x.config(disabledforeground="red"), self.buttons)
+        elif self.move_number == 9 and self.board_full(self.board):
+            info_text.set("Cat's game!")
+            self.apply_to_each(lambda x: x.config(disabledforeground="red"), self.buttons)
 
-        self.updateBoard()
+        self.update_board()
 
     # Apply the given function to each element in the given list
     # Like map but does not return anything
-    def applyToEach(self, func, someList):
-        for l in someList:
+    def apply_to_each(self, func, some_list):
+        for l in some_list:
             func(l)
 
     # Check who won the game, and change the GUI state accordingly
-    def whoWon(self, winningPlayer):
-        if winningPlayer == "X":
-            infoText.set("X wins!!!")
-            self.xWins += 1
+    def who_won(self, winner):
+        if winner == "X":
+            info_text.set("X wins!!!")
+            self.x_wins += 1
         else:
-            infoText.set("O wins!!!")
-            self.oWins += 1
+            info_text.set("O wins!!!")
+            self.o_wins += 1
 
-        countText.set("X: " + str(self.xWins) + "\tO: " + str(self.oWins))
+        count_text.set("X: " + str(self.x_wins) + "\tO: " + str(self.o_wins))
 
-        self.applyToEach(lambda x: x.config(disabledforeground="red"), [self.buttons[s] for s in self.winningSquares])
+        self.apply_to_each(lambda x: x.config(disabledforeground="red"),
+                           [self.buttons[s] for s in self.winning_squares])
 
         for b in self.buttons:
             b.config(state="disabled")
 
     # Reset the game to its base state
     def reset(self):
-        aiOn.config(state='normal')
-        self.currPlayer = "X"
-        self.moveNumber = 0
+        ai_on.config(state='normal')
+        self.curr_player = "X"
+        self.move_number = 0
 
-        infoText.set("It is X's turn")
+        info_text.set("It is X's turn")
 
         self.board = [" " for _ in self.board]
-        self.updateBoard()
+        self.update_board()
 
         for b in self.buttons:
             b.config(state="normal")
             b.config(disabledforeground="black")
 
     # Update the GUI to reflect the moves in the board attribute
-    def updateBoard(self):
+    def update_board(self):
         for i in xrange(9):
             self.moves[i].set(self.board[i])
 
     # Check each of the winning combinations to check if anyone has won
-    def gameWon(self, gameboard, player):
+    def game_won(self, gameboard, player):
         won = False
 
         # Horizontal
-        won |= self.threeInARow(gameboard, player, TicTacToe.topLeft, TicTacToe.topMid, TicTacToe.topRight)
-        won |= self.threeInARow(gameboard, player, TicTacToe.midLeft, TicTacToe.mid, TicTacToe.midRight)
-        won |= self.threeInARow(gameboard, player, TicTacToe.botLeft, TicTacToe.botMid, TicTacToe.botRight)
+        won |= self.three_in_a_row(gameboard, player, TicTacToe.topLeft, TicTacToe.topMid, TicTacToe.topRight)
+        won |= self.three_in_a_row(gameboard, player, TicTacToe.midLeft, TicTacToe.mid, TicTacToe.midRight)
+        won |= self.three_in_a_row(gameboard, player, TicTacToe.botLeft, TicTacToe.botMid, TicTacToe.botRight)
 
         # Vertical
-        won |= self.threeInARow(gameboard, player, TicTacToe.topLeft, TicTacToe.midLeft, TicTacToe.botLeft)
-        won |= self.threeInARow(gameboard, player, TicTacToe.topMid, TicTacToe.mid, TicTacToe.botMid)
-        won |= self.threeInARow(gameboard, player, TicTacToe.topRight, TicTacToe.midRight, TicTacToe.botRight)
+        won |= self.three_in_a_row(gameboard, player, TicTacToe.topLeft, TicTacToe.midLeft, TicTacToe.botLeft)
+        won |= self.three_in_a_row(gameboard, player, TicTacToe.topMid, TicTacToe.mid, TicTacToe.botMid)
+        won |= self.three_in_a_row(gameboard, player, TicTacToe.topRight, TicTacToe.midRight, TicTacToe.botRight)
 
         # Diagonal
-        won |= self.threeInARow(gameboard, player, TicTacToe.topLeft, TicTacToe.mid, TicTacToe.botRight)
-        won |= self.threeInARow(gameboard, player, TicTacToe.topRight, TicTacToe.mid, TicTacToe.botLeft)
+        won |= self.three_in_a_row(gameboard, player, TicTacToe.topLeft, TicTacToe.mid, TicTacToe.botRight)
+        won |= self.three_in_a_row(gameboard, player, TicTacToe.topRight, TicTacToe.mid, TicTacToe.botLeft)
 
         return won
 
     # Check if the three given squares are owned by the same player
-    def threeInARow(self, gameboard, player, pos1, pos2, pos3):
+    def three_in_a_row(self, gameboard, player, pos1, pos2, pos3):
         if gameboard[pos1] == gameboard[pos2] == gameboard[pos3] and gameboard[pos1] == player:
-            self.winningSquares = [pos1, pos2, pos3]
+            self.winning_squares = [pos1, pos2, pos3]
             return True
         else:
             return False
 
     # Get the opposite player
-    def getEnemy(self, currPlayer):
-        if currPlayer == "X":
+    def get_enemy(self, curr_player):
+        if curr_player == "X":
             return "O"
         else:
             return "X"
 
     # Returns true if the board is full
-    def boardFull(self, board):
+    def board_full(self, board):
         for s in board:
             if s == " ":
                 return False
@@ -154,63 +155,63 @@ class TicTacToe:
         return True
 
     # Call this to start the minimax algorithm
-    def aiMMInit(self):
+    def ai_mm_init(self):
         player = 'O'
         a = -1000
         b = 1000
 
-        boardCopy = copy.deepcopy(self.board)
+        board_copy = copy.deepcopy(self.board)
 
-        bestOutcome = -100
+        best_outcome = -100
 
-        bestMove = None
+        best_move = None
 
         for i in xrange(9):
-            if boardCopy[i] == " ":
-                boardCopy[i] = player
-                val = self.minimax(self.getEnemy(player), boardCopy, a, b)
-                boardCopy[i] = " "
+            if board_copy[i] == " ":
+                board_copy[i] = player
+                val = self.minimax(self.get_enemy(player), board_copy, a, b)
+                board_copy[i] = " "
                 if player == "O":
-                    if val > bestOutcome:
-                        bestOutcome = val
-                        bestMove = i
+                    if val > best_outcome:
+                        best_outcome = val
+                        best_move = i
                 else:
-                    if val < bestOutcome:
-                        bestOutcome = val
-                        bestMove = i
+                    if val < best_outcome:
+                        best_outcome = val
+                        best_move = i
 
-        self.makeMove(bestMove)
+        self.make_move(best_move)
 
     # The minimax algorithm, with alpha-beta pruning
     def minimax(self, player, board, alpha, beta):
-        boardCopy = copy.deepcopy(board)
+        board_copy = copy.deepcopy(board)
 
         # Check for a win
-        if self.gameWon(boardCopy, "O"):
+        if self.game_won(board_copy, "O"):
             return 1
-        elif self.gameWon(boardCopy, "X"):
+        elif self.game_won(board_copy, "X"):
             return -1
-        elif self.boardFull(boardCopy):
+        elif self.board_full(board_copy):
             return 0
 
-        best = -100 if player == "O" else 100
+        best_outcome = -100 if player == "O" else 100
 
         for i in xrange(9):
-            if boardCopy[i] == " ":
-                boardCopy[i] = player
-                val = self.minimax(self.getEnemy(player), boardCopy, alpha, beta)
-                boardCopy[i] = " "
+            if board_copy[i] == " ":
+                board_copy[i] = player
+                val = self.minimax(self.get_enemy(player), board_copy, alpha, beta)
+                board_copy[i] = " "
                 if player == "O":
-                    best = max(best, val)
-                    alpha = min(alpha, best)
+                    best_outcome = max(best_outcome, val)
+                    alpha = min(alpha, best_outcome)
                 else:
-                    best = min(best, val)
-                    beta = max(beta, best)
+                    best_outcome = min(best_outcome, val)
+                    beta = max(beta, best_outcome)
 
                 if beta <= alpha:
-                    return best
+                    return best_outcome
 
-        return best
+        return best_outcome
 
 
 # -------------------------------------
@@ -228,40 +229,40 @@ game = TicTacToe()
 # -------------------------------------
 
 # Welcome Label
-welcomeText = StringVar()
-welcomeText.set("Welcome to Ian's Tic-Tac-Toe Game!")
-welcome = Label(root, textvariable=welcomeText)
+welcome_text = StringVar()
+welcome_text.set("Welcome to Ian's Tic-Tac-Toe Game!")
+welcome = Label(root, textvariable=welcome_text)
 welcome.grid(row=0, column=0, columnspan=3)
 
 # Label used to display the current scores
-countText = StringVar()
-countText.set("X: " + str(game.xWins) + "\tO: " + str(game.oWins))
-count = Label(root, textvariable=countText)
+count_text = StringVar()
+count_text.set("X: " + str(game.x_wins) + "\tO: " + str(game.o_wins))
+count = Label(root, textvariable=count_text)
 count.grid(row=1, column=0, columnspan=3)
 
 # Label used to give the user information
-infoText = StringVar()
-infoText.set("It is X's turn")
-info = Label(root, textvariable=infoText)
+info_text = StringVar()
+info_text.set("It is X's turn")
+info = Label(root, textvariable=info_text)
 info.grid(row=2, column=0, columnspan=3)
 
 # Create buttons
 for square in xrange(9):
-    tempButton = Button(root, textvariable=game.moves[square], command=lambda s=square: game.makeMove(s))
+    temp_button = Button(root, textvariable=game.moves[square], command=lambda s=square: game.make_move(s))
     # Divide by 3 to get row number, modulus by 3 to get column number
-    tempButton.grid(row=(square / 3) + 3, column=(square % 3), sticky=NSEW)
-    game.buttons.append(tempButton)
+    temp_button.grid(row=(square / 3) + 3, column=(square % 3), sticky=NSEW)
+    game.buttons.append(temp_button)
 
 # Button for resetting the game
-restartButtonText = StringVar()
-restartButtonText.set("Restart")
-restartButton = Button(root, textvariable=restartButtonText, command=game.reset)
-restartButton.grid(row=1, column=0)
+restart_button_text = StringVar()
+restart_button_text.set("Restart")
+restart_button = Button(root, textvariable=restart_button_text, command=game.reset)
+restart_button.grid(row=1, column=0)
 
 # Checkbox for turning the AI on/off
-aiOnVar = IntVar()
-aiOn = Checkbutton(root, text="Turn on AI", variable=aiOnVar)
-aiOn.grid(row=1, column=2)
+ai_on_var = IntVar()
+ai_on = Checkbutton(root, text="Turn on AI", variable=ai_on_var)
+ai_on.grid(row=1, column=2)
 
 # Set the size of the rows and columns
 root.columnconfigure(0, minsize=100)
