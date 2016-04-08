@@ -41,7 +41,7 @@ class TicTacToe:
             # If the AI is turned on then tell the AI to take its turn
             if ai_on_var.get() and self.move_number < 9:
                 self.ai_mm_init()
-                if self.game_won(self.board, "O"):
+                if self.game_won(self.board) == "O":
                     return
         else:
             self.board[move] = "O"
@@ -51,10 +51,9 @@ class TicTacToe:
         self.buttons[move].config(state="disabled")
 
         # Check for a win
-        if self.game_won(self.board, "X"):
-            self.who_won("X")
-        elif self.game_won(self.board, "O"):
-            self.who_won("O")
+        winner = self.game_won(self.board)
+        if winner is not None:
+            self.who_won(winner)
         # Check for a Cat's game
         elif self.move_number == 9 and self.board_full(self.board):
             info_text.set("Cat's game!")
@@ -67,6 +66,13 @@ class TicTacToe:
     def apply_to_each(self, func, some_list):
         for l in some_list:
             func(l)
+
+    # Just like the function any, but returns the element instead of True
+    def any_return(self, iterable):
+        for e in iterable:
+            if e:
+                return e
+        return False
 
     # Check who won the game, and change the GUI state accordingly
     def who_won(self, winner):
@@ -106,19 +112,23 @@ class TicTacToe:
             self.moves[i].set(self.board[i])
 
     # Check each of the winning combinations to check if anyone has won
-    def game_won(self, gameboard, player):
+    def game_won(self, gameboard):
         # Check if any of the winning combinations have been used
-        return any([self.three_in_a_row(gameboard, player, c) for c in TicTacToe.winning_combinations])
+        check = self.any_return([self.three_in_a_row(gameboard, c) for c in TicTacToe.winning_combinations])
+        if check:
+            return check
+        else:
+            return None
 
     # Check if the three given squares are owned by the same player
-    def three_in_a_row(self, gameboard, player, squares):
+    def three_in_a_row(self, gameboard, squares):
         # Get the given squares from the board are check if they are all equal
         combo = set(itemgetter(squares[0], squares[1], squares[2])(gameboard))
-        if len(combo) == 1 and combo.pop() == player:
+        if len(combo) == 1 and combo.pop() != " ":
             self.winning_squares = squares
-            return True
+            return gameboard[squares[0]]
         else:
-            return False
+            return None
 
     # Get the opposite player
     def get_enemy(self, curr_player):
@@ -168,9 +178,11 @@ class TicTacToe:
         board_copy = copy.deepcopy(board)
 
         # Check for a win
-        if self.game_won(board_copy, "O"):
+        winner = self.game_won(board_copy)
+
+        if winner == "O":
             return 1
-        elif self.game_won(board_copy, "X"):
+        elif winner == "X":
             return -1
         elif self.board_full(board_copy):
             return 0
