@@ -2,6 +2,7 @@
 
 from Tkinter import *
 import copy
+from operator import itemgetter
 
 # The tic-tac-toe grid will have the following numbering convention
 # 0 | 1 | 2
@@ -12,15 +13,8 @@ import copy
 
 
 class TicTacToe:
-    topLeft = 0
-    topMid = 1
-    topRight = 2
-    midLeft = 3
-    mid = 4
-    midRight = 5
-    botLeft = 6
-    botMid = 7
-    botRight = 8
+    winning_combinations = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6],
+                            [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
 
     buttons = []
 
@@ -113,28 +107,15 @@ class TicTacToe:
 
     # Check each of the winning combinations to check if anyone has won
     def game_won(self, gameboard, player):
-        won = False
-
-        # Horizontal
-        won |= self.three_in_a_row(gameboard, player, TicTacToe.topLeft, TicTacToe.topMid, TicTacToe.topRight)
-        won |= self.three_in_a_row(gameboard, player, TicTacToe.midLeft, TicTacToe.mid, TicTacToe.midRight)
-        won |= self.three_in_a_row(gameboard, player, TicTacToe.botLeft, TicTacToe.botMid, TicTacToe.botRight)
-
-        # Vertical
-        won |= self.three_in_a_row(gameboard, player, TicTacToe.topLeft, TicTacToe.midLeft, TicTacToe.botLeft)
-        won |= self.three_in_a_row(gameboard, player, TicTacToe.topMid, TicTacToe.mid, TicTacToe.botMid)
-        won |= self.three_in_a_row(gameboard, player, TicTacToe.topRight, TicTacToe.midRight, TicTacToe.botRight)
-
-        # Diagonal
-        won |= self.three_in_a_row(gameboard, player, TicTacToe.topLeft, TicTacToe.mid, TicTacToe.botRight)
-        won |= self.three_in_a_row(gameboard, player, TicTacToe.topRight, TicTacToe.mid, TicTacToe.botLeft)
-
-        return won
+        # Check if any of the winning combinations have been used
+        return any([self.three_in_a_row(gameboard, player, c) for c in TicTacToe.winning_combinations])
 
     # Check if the three given squares are owned by the same player
-    def three_in_a_row(self, gameboard, player, pos1, pos2, pos3):
-        if gameboard[pos1] == gameboard[pos2] == gameboard[pos3] and gameboard[pos1] == player:
-            self.winning_squares = [pos1, pos2, pos3]
+    def three_in_a_row(self, gameboard, player, squares):
+        # Get the given squares from the board are check if they are all equal
+        combo = set(itemgetter(squares[0], squares[1], squares[2])(gameboard))
+        if len(combo) == 1 and combo.pop() == player:
+            self.winning_squares = squares
             return True
         else:
             return False
