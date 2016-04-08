@@ -27,6 +27,7 @@ class TicTacToe:
         self.curr_player = "X"
         self.move_number = 0
         self.winning_squares = []
+        self.game_over = False
 
         self.apply_to_each(lambda x: x.set(" "), self.moves)
 
@@ -41,12 +42,14 @@ class TicTacToe:
             # If the AI is turned on then tell the AI to take its turn
             if ai_on_var.get() and self.move_number < 9:
                 self.ai_mm_init()
-                if self.game_won(self.board) == "O":
-                    return
         else:
             self.board[move] = "O"
             info_text.set("It is X's turn")
             self.curr_player = "X"
+
+        # Check so that the win will not be counted twice for in AI mode
+        if self.game_over:
+            return
 
         self.buttons[move].config(state="disabled")
 
@@ -54,10 +57,12 @@ class TicTacToe:
         winner = self.game_won(self.board)
         if winner is not None:
             self.who_won(winner)
+            self.game_over = True
         # Check for a Cat's game
         elif self.move_number == 9 and self.board_full(self.board):
             info_text.set("Cat's game!")
             self.apply_to_each(lambda x: x.config(disabledforeground="red"), self.buttons)
+            self.game_over = True
 
         self.update_board()
 
@@ -96,6 +101,7 @@ class TicTacToe:
         ai_on.config(state='normal')
         self.curr_player = "X"
         self.move_number = 0
+        self.game_over = False
 
         info_text.set("It is X's turn")
 
@@ -147,7 +153,7 @@ class TicTacToe:
 
     # Call this to start the minimax algorithm
     def ai_mm_init(self):
-        player = 'O'
+        player = "O"
         a = -1000
         b = 1000
 
